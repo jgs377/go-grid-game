@@ -1,4 +1,4 @@
-package gogridgame
+package main
 
 import (
 	"image"
@@ -49,21 +49,11 @@ func run() {
 
 	imd := imdraw.New(nil)
 	imd.Color = colornames.Black
-	// imd.Push(pixel.V(0, 0), pixel.V(50, 50))
-	// imd.Rectangle(0)
 
-	// toggle := true
-
-	x := 0
 	offset := 0
 
 	for j := 0; j < 10; j++ {
 		for i := 0; i < 5; i++ {
-			// if toggle{
-			// 	imd.Color = colornames.Black
-			// } else {
-			// 	imd.Color = colornames.White
-			// }
 			imd.Push(
 				pixel.V(
 					float64(100*i+offset),
@@ -83,7 +73,7 @@ func run() {
 		}
 	}
 
-	pic, err := loadPicture("hiking.png")
+	pic, err := loadPicture("assets/hiking.png")
 	if err != nil {
 		panic(err)
 	}
