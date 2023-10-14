@@ -12,8 +12,7 @@ TODO: Add `-h` output
 
 # TODO
 - [ ] Command line args to change game
- - [ ] Grid size
- - [ ] More TBD
+- [ ] Variable grid size
 - [ ] Score indicator
 - [ ] Obstacles
 - [ ] Rewards
