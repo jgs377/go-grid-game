@@ -77,12 +77,9 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
+
 	sprite := pixel.NewSprite(pic, pic.Bounds())
-	// angle := 0.0
-
 	state := gopher{26, 27, 0, 0}
-	// movement := true
-
 	toggle := true
 
 	for !win.Closed() && !win.JustPressed(pixelgl.KeyEscape) {
