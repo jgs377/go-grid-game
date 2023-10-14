@@ -32,7 +32,7 @@ func loadPicture(path string) (pixel.Picture, error) {
 	return pixel.PictureDataFromImage(img), nil
 }
 
-func calcGrid(imd *imdraw.IMDraw) {
+func generateGrid(imd *imdraw.IMDraw) {
 	imd.Color = colornames.Black
 
 	offset := 0
@@ -75,7 +75,7 @@ func run() {
 	win.SetSmooth(true)
 
 	imd := imdraw.New(nil)
-	calcGrid(imd)
+	generateGrid(imd)
 
 	pic, err := loadPicture("assets/hiking.png")
 	if err != nil {
