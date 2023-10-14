@@ -1,1 +1,8 @@
-# go-grid-game
+# Grid Game
+TODO
+# Usage
+TODO
+
+# Notes
+
+# Screenshots

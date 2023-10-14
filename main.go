@@ -1,0 +1,5 @@
+package gogridgame
+
+func main() {
+
+}
