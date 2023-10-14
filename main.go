@@ -32,22 +32,7 @@ func loadPicture(path string) (pixel.Picture, error) {
 	return pixel.PictureDataFromImage(img), nil
 }
 
-func run() {
-	cfg := pixelgl.WindowConfig{
-		Title:  "Grid Game",
-		Bounds: pixel.R(0, 0, 500, 500),
-		VSync:  true,
-	}
-
-	win, err := pixelgl.NewWindow(cfg)
-	if err != nil {
-		panic(err)
-	}
-
-	win.Clear(colornames.White)
-	win.SetSmooth(true)
-
-	imd := imdraw.New(nil)
+func calcGrid(imd *imdraw.IMDraw) {
 	imd.Color = colornames.Black
 
 	offset := 0
@@ -72,6 +57,25 @@ func run() {
 			offset = 0
 		}
 	}
+}
+
+func run() {
+	cfg := pixelgl.WindowConfig{
+		Title:  "Grid Game",
+		Bounds: pixel.R(0, 0, 500, 500),
+		VSync:  true,
+	}
+
+	win, err := pixelgl.NewWindow(cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	win.Clear(colornames.White)
+	win.SetSmooth(true)
+
+	imd := imdraw.New(nil)
+	calcGrid(imd)
 
 	pic, err := loadPicture("assets/hiking.png")
 	if err != nil {
