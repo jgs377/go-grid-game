@@ -26,4 +26,4 @@ TODO: Add `-h` output
 - https://www.svgrepo.com for the carrot, rock and bag artwork.
 
 # Screenshots
-![](https://github.com/jgs377/go-grid-game/blob/main/assets/Screenshot1.png?raw=true)
+![](https://github.com/jgs377/go-grid-game/blob/main/assets/Screenshot2.png?raw=true)
