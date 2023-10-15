@@ -21,8 +21,9 @@ TODO: Add `-h` output
 
 
 # Thanks
-- https://github.com/egonelbre/gophers for the artwork.
+- https://github.com/egonelbre/gophers for the gopher artwork that I edited to make the character.
 - https://github.com/gopxl/pixel cool project for the GUI.
+- https://www.svgrepo.com for the carrot, rock and bag artwork.
 
 # Screenshots
 ![](https://github.com/jgs377/go-grid-game/blob/main/assets/Screenshot1.png?raw=true)
