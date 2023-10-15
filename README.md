@@ -27,3 +27,4 @@ TODO: Add `-h` output
 
 # Screenshots
 ![](https://github.com/jgs377/go-grid-game/blob/main/assets/Screenshot2.png?raw=true)
+<img src="https://github.com/jgs377/go-grid-game/blob/main/assets/Screenshot2.png?raw=true" width="200" />
