@@ -12,11 +12,24 @@ import (
 	"golang.org/x/image/colornames"
 )
 
-type gopher struct {
-	X     float64
-	Y     float64
+type coord struct {
 	tileX int
 	tileY int
+}
+
+type gopher struct {
+	windowX   float64
+	windowY   float64
+	location  coord
+	direction float64 // TODO: improve; -1 = left, 1 = right
+}
+
+type grid struct {
+	sizeX     int
+	sizeY     int
+	rewards   []coord
+	obstacles []coord
+	finish    []coord
 }
 
 func loadPicture(path string) (pixel.Picture, error) {
@@ -59,6 +72,56 @@ func generateGrid(imd *imdraw.IMDraw) {
 	}
 }
 
+func initGrid() grid {
+	g := grid{
+		sizeX: 10,
+		sizeY: 10,
+	}
+	g.rewards = append(g.rewards, coord{tileX: 5, tileY: 5})
+	g.rewards = append(g.rewards, coord{tileX: 3, tileY: 3})
+	return g
+}
+
+func isObstacle(tile coord, g grid) bool {
+	// TODO
+	return false
+}
+
+func isReward(tile coord, g grid) bool {
+	// TODO
+	return false
+}
+
+func loadAssets() map[string]*pixel.Sprite {
+	assets := make(map[string]*pixel.Sprite)
+
+	pic, err := loadPicture("assets/gopher50x50.png")
+	if err != nil {
+		panic(err)
+	}
+	assets["gopher"] = pixel.NewSprite(pic, pic.Bounds())
+
+	pic, err = loadPicture("assets/carrot.png")
+	if err != nil {
+		panic(err)
+	}
+	assets["reward"] = pixel.NewSprite(pic, pic.Bounds())
+
+	pic, err = loadPicture("assets/rock.png")
+	if err != nil {
+		panic(err)
+	}
+	assets["obstacle"] = pixel.NewSprite(pic, pic.Bounds())
+
+	pic, err = loadPicture("assets/dollar-bag2.png")
+	if err != nil {
+		panic(err)
+	}
+	assets["win"] = pixel.NewSprite(pic, pic.Bounds())
+
+	return assets
+}
+
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Grid Game",
@@ -77,13 +140,14 @@ func run() {
 	imd := imdraw.New(nil)
 	generateGrid(imd)
 
-	pic, err := loadPicture("assets/hiking.png")
-	if err != nil {
-		panic(err)
-	}
+	// pic, err := loadPicture("assets/gopher50x50.png")
+	// if err != nil {panic(err)}
+	// gopherSprite := pixel.NewSprite(pic, pic.Bounds())
 
-	sprite := pixel.NewSprite(pic, pic.Bounds())
-	state := gopher{26, 27, 0, 0}
+	assets := loadAssets()
+
+	// state := gopher{26, 27, coord{0, 0}}
+	state := gopher{25, 25, coord{0, 0}, -1.0}
 	toggle := true
 
 	for !win.Closed() && !win.JustPressed(pixelgl.KeyEscape) {
@@ -95,32 +159,35 @@ func run() {
 
 		// Draw gopher
 		mat := pixel.IM
-		mat = mat.Scaled(pixel.ZV, 0.08)
-		mat = mat.Moved(pixel.V(state.X, state.Y))
-		sprite.Draw(win, mat)
+		// mat = mat.Scaled(pixel.ZV, 0.08)
+		mat = mat.ScaledXY(pixel.ZV, pixel.V(state.direction, 1))
+		mat = mat.Moved(pixel.V(state.windowX, state.windowY))
+		assets["gopher"].Draw(win, mat)
 
 		if win.JustPressed(pixelgl.KeyLeft) {
-			if state.tileX > 0 {
-				state.X -= 50
-				state.tileX -= 1
+			if state.location.tileX > 0 {
+				state.windowX -= 50
+				state.location.tileX -= 1
 			}
+			state.direction = -1
 		}
 		if win.JustPressed(pixelgl.KeyRight) {
-			if state.tileX < 9 {
-				state.X += 50
-				state.tileX += 1
+			if state.location.tileX < 9 {
+				state.windowX += 50
+				state.location.tileX += 1
 			}
+			state.direction = 1
 		}
 		if win.JustPressed(pixelgl.KeyUp) {
-			if state.tileY < 9 {
-				state.Y += 50
-				state.tileY += 1
+			if state.location.tileY < 9 {
+				state.windowY += 50
+				state.location.tileY += 1
 			}
 		}
 		if win.JustPressed(pixelgl.KeyDown) {
-			if state.tileY > 0 {
-				state.Y -= 50
-				state.tileY -= 1
+			if state.location.tileY > 0 {
+				state.windowY -= 50
+				state.location.tileY -= 1
 			}
 		}
 
