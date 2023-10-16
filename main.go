@@ -46,7 +46,7 @@ func loadPicture(path string) (pixel.Picture, error) {
 }
 
 func generateGrid(imd *imdraw.IMDraw) {
-	imd.Color = colornames.Black
+	imd.Color = colornames.Lightgray
 
 	offset := 0
 
