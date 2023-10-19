@@ -1,15 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"os"
 
 	_ "image/png"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/gopxl/pixel/v2"
 	"github.com/gopxl/pixel/v2/imdraw"
 	"github.com/gopxl/pixel/v2/pixelgl"
+	"github.com/gopxl/pixel/v2/text"
 	"golang.org/x/image/colornames"
+	"golang.org/x/image/font/gofont/goregular"
 )
 
 type coord struct {
@@ -22,6 +26,8 @@ type gopher struct {
 	windowY   float64
 	location  coord
 	direction float64 // TODO: improve; -1 = left, 1 = right
+
+	score float64
 }
 
 type grid struct {
@@ -70,6 +76,9 @@ func generateGrid(imd *imdraw.IMDraw) {
 			offset = 0
 		}
 	}
+	imd.Color = colornames.Black
+	imd.Push(pixel.V(0, 500), pixel.V(500, 530))
+	imd.Rectangle(0)
 }
 
 func initGrid() grid {
@@ -125,7 +134,7 @@ func loadAssets() map[string]*pixel.Sprite {
 func run() {
 	cfg := pixelgl.WindowConfig{
 		Title:  "Grid Game",
-		Bounds: pixel.R(0, 0, 500, 500),
+		Bounds: pixel.R(0, 0, 500, 530),
 		VSync:  true,
 	}
 
@@ -147,15 +156,32 @@ func run() {
 	assets := loadAssets()
 
 	// state := gopher{26, 27, coord{0, 0}}
-	state := gopher{25, 25, coord{0, 0}, -1.0}
+	state := gopher{25, 25, coord{0, 0}, -1.0, 0}
 	toggle := true
 
+	ttf, err := truetype.Parse(goregular.TTF)
+	if err != nil {
+		panic(err)
+	}
+	face := truetype.NewFace(ttf, &truetype.Options{
+		Size: 22,
+	})
+	atlas := text.NewAtlas(face, text.ASCII)
+
+	txt := text.New(pixel.V(5, 505), atlas)
+	txt.Color = colornames.Yellow
+
 	for !win.Closed() && !win.JustPressed(pixelgl.KeyEscape) {
+
 		// Empty white canvas
 		win.Clear(colornames.White)
 
 		// Draw black squares
 		imd.Draw(win)
+
+		txt.WriteString(fmt.Sprintf("Score: %.1f", state.score))
+		txt.Draw(win, pixel.IM)
+		txt.Clear()
 
 		// Draw gopher
 		mat := pixel.IM
@@ -168,6 +194,7 @@ func run() {
 			if state.location.tileX > 0 {
 				state.windowX -= 50
 				state.location.tileX -= 1
+				state.score -= 0.1
 			}
 			state.direction = -1
 		}
@@ -175,6 +202,7 @@ func run() {
 			if state.location.tileX < 9 {
 				state.windowX += 50
 				state.location.tileX += 1
+				state.score -= 0.1
 			}
 			state.direction = 1
 		}
@@ -182,12 +210,14 @@ func run() {
 			if state.location.tileY < 9 {
 				state.windowY += 50
 				state.location.tileY += 1
+				state.score -= 0.1
 			}
 		}
 		if win.JustPressed(pixelgl.KeyDown) {
 			if state.location.tileY > 0 {
 				state.windowY -= 50
 				state.location.tileY -= 1
+				state.score -= 0.1
 			}
 		}
 
