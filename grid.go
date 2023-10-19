@@ -10,3 +10,23 @@ type Grid struct {
 	sizeY int
 	tiles [][]ObjectInterface
 }
+
+func (g Grid) IsReward(coord Coord) bool {
+	// TODO
+	return true
+}
+
+func (g Grid) IsObstacle(coord Coord) bool {
+	// TODO
+	return true
+}
+
+func (g Grid) IsWinCondition(coord Coord) bool {
+	// TODO
+	return true
+}
+
+func (g Grid) IsLossCondition(coord Coord) bool {
+	// TODO
+	return true
+}
