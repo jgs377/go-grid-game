@@ -1,5 +1,10 @@
 package main
 
+const North int = 0
+const South int = 1
+const East int = 2
+const West int = 3
+
 // Represents a coordinate pointing to a tile on the Grid
 type Coord struct {
 	tileX int
@@ -11,6 +16,23 @@ type Grid struct {
 	sizeX int
 	sizeY int
 	tiles [][]ObjectInterface
+}
+
+// Generates a new grid
+func GenerateGrid(sizeX int, sizeY int, player *Player) (grid Grid) {
+	grid.sizeX = sizeX
+	grid.sizeY = sizeY
+
+	// Make the 2D grid representation
+	grid.tiles = make([][]ObjectInterface, sizeX)
+	for i:=range grid.tiles {
+		grid.tiles[i] = make([]ObjectInterface, sizeY)
+	}
+
+	grid.tiles[0][0] = player
+	grid.tiles[2][3] = NewObstacle(Coord{2, 3})
+
+	return grid
 }
 
 // Determines if there is an object of type Reward on the tile at location (coord.X, coord.Y)
