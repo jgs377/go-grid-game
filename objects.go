@@ -1,5 +1,7 @@
 package main
 
+import "github.com/gopxl/pixel/v2"
+
 type object struct {
 	// Generic object in the grid game
 	// Can be a gopher, obstacle, reward,
@@ -17,6 +19,8 @@ type Player struct {
 
 	score     int
 	direction float64 // TODO: improve; -1 = left, 1 = right
+
+	sprite *pixel.Sprite
 }
 
 type Obstacle struct {
@@ -69,8 +73,27 @@ func (l LossCondition) Draw() {
 	// TODO
 }
 
+// Generates an object of type Player
 func NewPlayer() (player Player) {
-	player = Player{object{25, 25, Coord{0, 0}}, 0, 1}
+	pic, err := loadPicture("assets/gopher50x50.png")
+	if err != nil {
+		panic(err)
+	}
+
+	player = Player{
+		object: object{
+			windowX: 25, 
+			windowY: 25, 
+			location: Coord{
+				tileX: 0,
+				tileY: 0,
+			},
+		}, 
+		score: 0, 
+		direction: 1,
+		sprite: pixel.NewSprite(pic, pic.Bounds()),
+	}
+
 	return player
 }
 
