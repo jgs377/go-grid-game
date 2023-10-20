@@ -1,6 +1,9 @@
 package main
 
-import "github.com/gopxl/pixel/v2"
+import (
+	"github.com/gopxl/pixel/v2"
+	"github.com/gopxl/pixel/v2/pixelgl"
+)
 
 type object struct {
 	// Generic object in the grid game
@@ -9,6 +12,7 @@ type object struct {
 	windowY  float64
 	location Coord
 
+	sprite *pixel.Sprite
 	// objectType string
 
 	// TODO: look into making separate structs for different objects
@@ -17,10 +21,9 @@ type object struct {
 type Player struct {
 	object
 
-	score     int
+	score     float64
 	direction float64 // TODO: improve; -1 = left, 1 = right
 
-	sprite *pixel.Sprite
 }
 
 type Obstacle struct {
@@ -50,31 +53,34 @@ type WinCondition struct {
 
 // All object types present in the game implement this ObjectInterface
 type ObjectInterface interface {
-	Draw()
+	Draw(*pixelgl.Window)
 }
 
-func (p Player) Draw() {
+func (p Player) Draw(win *pixelgl.Window) {
+	mat := pixel.IM
+	mat = mat.ScaledXY(pixel.ZV, pixel.V(p.direction, 1))
+	mat = mat.Moved(pixel.V(p.windowX, p.windowY))
+	p.sprite.Draw(win, mat)
+}
+
+func (o Obstacle) Draw(win *pixelgl.Window) {
 	// TODO
 }
 
-func (o Obstacle) Draw() {
+func (r Reward) Draw(win *pixelgl.Window) {
 	// TODO
 }
 
-func (r Reward) Draw() {
+func (w WinCondition) Draw(win *pixelgl.Window) {
 	// TODO
 }
 
-func (w WinCondition) Draw() {
-	// TODO
-}
-
-func (l LossCondition) Draw() {
+func (l LossCondition) Draw(win *pixelgl.Window) {
 	// TODO
 }
 
 // Generates an object of type Player
-func NewPlayer() (player Player) {
+func NewPlayer(coord Coord) (player Player) {
 	pic, err := loadPicture("assets/gopher50x50.png")
 	if err != nil {
 		panic(err)
@@ -82,32 +88,43 @@ func NewPlayer() (player Player) {
 
 	player = Player{
 		object: object{
-			windowX: 25, 
-			windowY: 25, 
-			location: Coord{
-				tileX: 0,
-				tileY: 0,
-			},
-		}, 
-		score: 0, 
-		direction: 1,
-		sprite: pixel.NewSprite(pic, pic.Bounds()),
+			windowX: 25,
+			windowY: 25,
+			location: coord,
+			sprite: pixel.NewSprite(pic, pic.Bounds()),
+		},
+		score:     0,
+		direction: 1.0,
 	}
 
 	return player
 }
 
-func NewObstacle() (obstacle Obstacle) {
-	obstacle = Obstacle{object{25, 25, Coord{0, 0}}}
+// Generates an object of type Obstacle
+func NewObstacle(coord Coord) (obstacle Obstacle) {
+	pic, err := loadPicture("assets/rock.png")
+	if err != nil {
+		panic(err)
+	}
+
+	obstacle = Obstacle{
+		object: object{
+			windowX: 25,
+			windowY: 25,
+			location: coord,
+			sprite: pixel.NewSprite(pic, pic.Bounds()),
+		},
+	}
+
 	return obstacle
 }
 
-func NewWinCondition() (winCondition WinCondition) {
-	winCondition = WinCondition{object{25, 25, Coord{0, 0}}, 100}
-	return winCondition
-}
+// func NewWinCondition() (winCondition WinCondition) {
+// 	winCondition = WinCondition{object{25, 25, Coord{0, 0}}, 100}
+// 	return winCondition
+// }
 
-func NewLossCondition() (lossCondition LossCondition) {
-	lossCondition = LossCondition{object{25, 25, Coord{0, 0}}, -100}
-	return lossCondition
-}
+// func NewLossCondition() (lossCondition LossCondition) {
+// 	lossCondition = LossCondition{object{25, 25, Coord{0, 0}}, -100}
+// 	return lossCondition
+// }
