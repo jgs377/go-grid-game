@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image"
-	"os"
-
-	_ "image/png"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/gopxl/pixel/v2"
@@ -16,43 +12,11 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 )
 
-type coord struct {
-	tileX int
-	tileY int
-}
-
-type gopher struct {
-	windowX   float64
-	windowY   float64
-	location  coord
-	direction float64 // TODO: improve; -1 = left, 1 = right
-
-	score float64
-}
-
-type grid struct {
-	sizeX     int
-	sizeY     int
-	rewards   []coord
-	obstacles []coord
-	finish    []coord
-}
-
-func loadPicture(path string) (pixel.Picture, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-	return pixel.PictureDataFromImage(img), nil
-}
-
-func generateGrid(imd *imdraw.IMDraw) {
-	imd.Color = colornames.Black
+// Calculates the squares that need to be drawn on the grid
+// and pushed them to IMDRaw
+// TOOD: Calculate dynamically based on window size
+func calculateGridSquares(imd *imdraw.IMDraw) {
+	imd.Color = colornames.Lightgray
 
 	offset := 0
 
@@ -79,26 +43,6 @@ func generateGrid(imd *imdraw.IMDraw) {
 	imd.Color = colornames.Black
 	imd.Push(pixel.V(0, 500), pixel.V(500, 530))
 	imd.Rectangle(0)
-}
-
-func initGrid() grid {
-	g := grid{
-		sizeX: 10,
-		sizeY: 10,
-	}
-	g.rewards = append(g.rewards, coord{tileX: 5, tileY: 5})
-	g.rewards = append(g.rewards, coord{tileX: 3, tileY: 3})
-	return g
-}
-
-func isObstacle(tile coord, g grid) bool {
-	// TODO
-	return false
-}
-
-func isReward(tile coord, g grid) bool {
-	// TODO
-	return false
 }
 
 func loadAssets() map[string]*pixel.Sprite {
@@ -132,103 +76,74 @@ func loadAssets() map[string]*pixel.Sprite {
 }
 
 func run() {
-	cfg := pixelgl.WindowConfig{
+	// Create window config
+	// TODO: Customizable bounds using cmd args
+	config := pixelgl.WindowConfig{
 		Title:  "Grid Game",
 		Bounds: pixel.R(0, 0, 500, 530),
 		VSync:  true,
 	}
 
-	win, err := pixelgl.NewWindow(cfg)
+	win, err := pixelgl.NewWindow(config)
 	if err != nil {
 		panic(err)
 	}
 
-	win.Clear(colornames.White)
-	win.SetSmooth(true)
-
 	imd := imdraw.New(nil)
-	generateGrid(imd)
+	calculateGridSquares(imd)
 
-	// pic, err := loadPicture("assets/gopher50x50.png")
-	// if err != nil {panic(err)}
-	// gopherSprite := pixel.NewSprite(pic, pic.Bounds())
-
-	assets := loadAssets()
-
-	// state := gopher{26, 27, coord{0, 0}}
-	state := gopher{25, 25, coord{0, 0}, -1.0, 0}
-	toggle := true
+	gopher := NewPlayer(Coord{0, 0})
+	grid := GenerateGrid(10, 10, &gopher)
 
 	ttf, err := truetype.Parse(goregular.TTF)
 	if err != nil {
 		panic(err)
 	}
-	face := truetype.NewFace(ttf, &truetype.Options{
-		Size: 22,
-	})
-	atlas := text.NewAtlas(face, text.ASCII)
 
+	face := truetype.NewFace(ttf, &truetype.Options{Size: 22})
+	atlas := text.NewAtlas(face, text.ASCII)
 	txt := text.New(pixel.V(5, 505), atlas)
 	txt.Color = colornames.Yellow
 
 	for !win.Closed() && !win.JustPressed(pixelgl.KeyEscape) {
-
-		// Empty white canvas
+		// Make background white
 		win.Clear(colornames.White)
 
-		// Draw black squares
+		// Draw the grey squares
 		imd.Draw(win)
 
-		txt.WriteString(fmt.Sprintf("Score: %.1f", state.score))
+		// Write the score text to the top of the window
+		txt.WriteString(fmt.Sprintf("Score: %.1f", gopher.score))
 		txt.Draw(win, pixel.IM)
 		txt.Clear()
 
-		// Draw gopher
-		mat := pixel.IM
-		// mat = mat.Scaled(pixel.ZV, 0.08)
-		mat = mat.ScaledXY(pixel.ZV, pixel.V(state.direction, 1))
-		mat = mat.Moved(pixel.V(state.windowX, state.windowY))
-		assets["gopher"].Draw(win, mat)
+		// Draw the sprites contained in grid.tiles
+		grid.Draw(win)
 
+		// Handle key inputs
 		if win.JustPressed(pixelgl.KeyLeft) {
-			if state.location.tileX > 0 {
-				state.windowX -= 50
-				state.location.tileX -= 1
-				state.score -= 0.1
+			if grid.IsValidTile(gopher.location.Shift(East)) {
+				gopher.Move(East, &grid)
 			}
-			state.direction = -1
+			gopher.direction = -1
 		}
 		if win.JustPressed(pixelgl.KeyRight) {
-			if state.location.tileX < 9 {
-				state.windowX += 50
-				state.location.tileX += 1
-				state.score -= 0.1
+			if grid.IsValidTile(gopher.location.Shift(West)) {
+				gopher.Move(West, &grid)
 			}
-			state.direction = 1
+			gopher.direction = 1
 		}
 		if win.JustPressed(pixelgl.KeyUp) {
-			if state.location.tileY < 9 {
-				state.windowY += 50
-				state.location.tileY += 1
-				state.score -= 0.1
+			if grid.IsValidTile(gopher.location.Shift(North)) {
+				gopher.Move(North, &grid)
 			}
 		}
 		if win.JustPressed(pixelgl.KeyDown) {
-			if state.location.tileY > 0 {
-				state.windowY -= 50
-				state.location.tileY -= 1
-				state.score -= 0.1
+			if grid.IsValidTile(gopher.location.Shift(South)) {
+				gopher.Move(South, &grid)
 			}
 		}
-
-		// Update canvas
-		if toggle {
-			win.Update()
-			toggle = false
-		} else {
-			win.SwapBuffers()
-			win.UpdateInputWait(0)
-		}
+		win.Update()
 	}
 }
 
