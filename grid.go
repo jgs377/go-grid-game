@@ -1,5 +1,7 @@
 package main
 
+import "github.com/gopxl/pixel/v2/pixelgl"
+
 const North int = 0
 const South int = 1
 const East int = 2
@@ -25,12 +27,14 @@ func GenerateGrid(sizeX int, sizeY int, player *Player) (grid Grid) {
 
 	// Make the 2D grid representation
 	grid.tiles = make([][]ObjectInterface, sizeX)
-	for i:=range grid.tiles {
+	for i := range grid.tiles {
 		grid.tiles[i] = make([]ObjectInterface, sizeY)
 	}
 
 	grid.tiles[0][0] = player
 	grid.tiles[2][3] = NewObstacle(Coord{2, 3})
+	grid.tiles[7][5] = NewObstacle(Coord{7, 5})
+	grid.tiles[7][4] = NewObstacle(Coord{7, 4})
 
 	return grid
 }
@@ -71,5 +75,37 @@ func (g Grid) IsValidTile(coord Coord) (isValidTile bool) {
 	if coord.tileX >= g.sizeX || coord.tileY >= g.sizeY {
 		return false
 	}
+	if g.IsObstacle(coord) {
+		return false
+	}
 	return true
+}
+
+func (c Coord) Shift(direction int) (shiftedCoord Coord) {
+	if direction == North {
+		return Coord{c.tileX, c.tileY + 1}
+	}
+	if direction == South {
+		return Coord{c.tileX, c.tileY - 1}
+	}
+	if direction == East {
+		return Coord{c.tileX - 1, c.tileY}
+	}
+	if direction == West {
+		return Coord{c.tileX + 1, c.tileY}
+	}
+
+	// In theory this shouldn't be reachable, so we just
+	// return the unchanged input Coord
+	return c
+}
+
+func (g *Grid) Draw(win *pixelgl.Window) {
+	for x := 0; x < g.sizeX; x++ {
+		for y := 0; y < g.sizeY; y++ {
+			if g.tiles[x][y] != nil {
+				g.tiles[x][y].Draw(win)
+			}
+		}
+	}
 }
