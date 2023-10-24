@@ -125,23 +125,25 @@ func run() {
 			if grid.IsValidTile(gopher.location.Shift(East)) {
 				gopher.Move(East, &grid)
 			}
-			gopher.direction = -1
+			gopher.direction = East
 		}
 		if win.JustPressed(pixelgl.KeyRight) {
 			if grid.IsValidTile(gopher.location.Shift(West)) {
 				gopher.Move(West, &grid)
 			}
-			gopher.direction = 1
+			gopher.direction = West
 		}
 		if win.JustPressed(pixelgl.KeyUp) {
 			if grid.IsValidTile(gopher.location.Shift(North)) {
 				gopher.Move(North, &grid)
 			}
+			gopher.direction = North
 		}
 		if win.JustPressed(pixelgl.KeyDown) {
 			if grid.IsValidTile(gopher.location.Shift(South)) {
 				gopher.Move(South, &grid)
 			}
+			gopher.direction = South
 		}
 		win.Update()
 	}

@@ -21,16 +21,16 @@ type object struct {
 	location Coord
 
 	sprite *pixel.Sprite
-
-	// TODO: look into making separate structs for different objects
 }
 
 type Player struct {
 	object
 
 	score     float64
-	direction float64 // TODO: improve; -1 = left, 1 = right
+	direction int
 
+	backSprite  *pixel.Sprite
+	frontSprite *pixel.Sprite
 }
 
 type Obstacle struct {
@@ -64,8 +64,24 @@ type ObjectInterface interface {
 }
 
 func (p Player) Draw(win *pixelgl.Window) {
-	mat := pixel.IM.ScaledXY(pixel.ZV, pixel.V(p.direction, 1))
-	mat = mat.Moved(pixel.V(p.windowX, p.windowY))
+	// Check East first because it's the only one we need to scale
+	// the matrix for which has to be step 1
+	if p.direction == East {
+		mat := pixel.IM.ScaledXY(pixel.ZV, pixel.V(-1, 1))
+		mat = mat.Moved(pixel.V(p.windowX, p.windowY))
+		p.sprite.Draw(win, mat)
+		return
+	}
+
+	mat := pixel.IM.Moved(pixel.V(p.windowX, p.windowY))
+	if p.direction == North {
+		p.backSprite.Draw(win, mat)
+		return
+	} else if p.direction == South {
+		p.frontSprite.Draw(win, mat)
+		return
+	}
+	
 	p.sprite.Draw(win, mat)
 }
 
@@ -130,6 +146,14 @@ func NewPlayer(coord Coord) (player Player) {
 	if err != nil {
 		panic(err)
 	}
+	pic2, err := loadPicture("assets/gopher50x50back.png")
+	if err != nil {
+		panic(err)
+	}
+	pic3, err := loadPicture("assets/gopher50x50front.png")
+	if err != nil {
+		panic(err)
+	}
 
 	player = Player{
 		object: object{
@@ -138,8 +162,10 @@ func NewPlayer(coord Coord) (player Player) {
 			location: coord,
 			sprite:   pixel.NewSprite(pic, pic.Bounds()),
 		},
-		score:     0,
-		direction: 1.0,
+		score:       0,
+		direction:   1.0,
+		backSprite:  pixel.NewSprite(pic2, pic2.Bounds()),
+		frontSprite: pixel.NewSprite(pic3, pic3.Bounds()),
 	}
 
 	return player
