@@ -8,17 +8,6 @@ TODO: Make a nice splash image
 ```
 go run main.go
 ```
-TODO: Add `-h` output
-
-# TODO
-- [ ] Command line args to change game
-- [ ] Variable grid size
-- [ ] Score indicator
-- [ ] Obstacles
-- [ ] Rewards
-- [ ] Winning / losing conditions
-- [ ] More TBD
-
 
 # Thanks
 - https://github.com/egonelbre/gophers for the gopher artwork that I edited to make the character.
