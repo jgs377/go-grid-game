@@ -42,7 +42,8 @@ func GenerateGrid(sizeX int, sizeY int, player *Player) (grid Grid) {
 	grid.tiles[7][4] = NewObstacle(Coord{7, 4})
 	grid.tiles[8][1] = NewReward(Coord{8, 1})
 	grid.tiles[8][8] = NewReward(Coord{8, 8})
-	grid.tiles[9][9] = NewWinCondition(Coord{9, 9})
+	grid.tiles[9][9] = NewEndCondition(Coord{9, 9}, 20)
+	grid.tiles[4][2] = NewEndCondition(Coord{4, 2}, -20)
 
 	return grid
 }
@@ -62,17 +63,10 @@ func (g Grid) IsObstacle(coord Coord) (isObstacle bool) {
 }
 
 // Determines if there is an object of type WinCondition on the tile at location (coord.X, coord.Y)
-func (g Grid) IsWinCondition(coord Coord) (isWinCondition bool) {
+func (g Grid) IsEndCondition(coord Coord) (isWinCondition bool) {
 	toTest := g.tiles[coord.tileX][coord.tileY]
-	_, isWinCondition = toTest.(WinCondition)
+	_, isWinCondition = toTest.(EndCondition)
 	return isWinCondition
-}
-
-// Determines if there is an object of type EndCondition on the tile at location (coord.X, coord.Y)
-func (g Grid) IsLossCondition(coord Coord) (isLossCondition bool) {
-	toTest := g.tiles[coord.tileX][coord.tileY]
-	_, isLossCondition = toTest.(LossCondition)
-	return isLossCondition
 }
 
 // Determines if the tile a location (coord.X, coord.Y) is in bounds
