@@ -20,6 +20,7 @@ const (
 	rewardPath = asset_path + "carrot.png"
 	winConditionPath = asset_path + "dollar-bag2.png"
 	obstaclePath = asset_path + "rock.png"
+	lossConditionPath = asset_path + "hole.png"
 )
 
 type object struct {
@@ -57,12 +58,7 @@ type Reward struct {
 	value int
 }
 
-type LossCondition struct {
-	object
-	value int
-}
-
-type WinCondition struct {
+type EndCondition struct {
 	object
 	value int
 }
@@ -107,12 +103,8 @@ func (r Reward) Draw(win *pixelgl.Window) {
 	r.object.Draw(win)
 }
 
-func (w WinCondition) Draw(win *pixelgl.Window) {
-	w.object.Draw(win)
-}
-
-func (l LossCondition) Draw(win *pixelgl.Window) {
-	l.object.Draw(win)
+func (e EndCondition) Draw(win *pixelgl.Window) {
+	e.object.Draw(win)
 }
 
 var movement = map[int]Coord{
@@ -130,6 +122,11 @@ func (p *Player) Move(direction int, grid *Grid) {
 
 	if grid.IsReward(Coord{newX, newY}) {
 		p.score += float64(grid.tiles[newX][newY].(Reward).value)
+	}
+
+	if grid.IsEndCondition(Coord{newX, newY}) {
+		p.score += float64(grid.tiles[newX][newY].(EndCondition).value)
+		grid.gameOver = true
 	}
 
 	grid.tiles[newX][newY] = grid.tiles[p.location.tileX][p.location.tileY]
@@ -203,6 +200,27 @@ func NewReward(coord Coord) (reward Reward) {
 	return reward
 }
 
+func NewEndCondition(coord Coord, value int) (endCondition EndCondition) {
+	var sprite *pixel.Sprite
+
+	if value > 0 {
+		sprite = newSpriteFromPath(winConditionPath)
+	} else {
+		sprite = newSpriteFromPath(lossConditionPath)
+	}
+
+	endCondition = EndCondition{
+		object: object{
+			windowX: float64(25+50*coord.tileX),
+			windowY: float64(25+50*coord.tileY),
+			location: coord,
+			sprite: sprite,
+		},
+		value: value,
+	}
+	return endCondition
+}
+
 func loadPicture(path string) (pixel.Picture, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -223,13 +241,3 @@ func newSpriteFromPath(path string) (sprite *pixel.Sprite) {
 	}
 	return pixel.NewSprite(pic, pic.Bounds())
 }
-
-// func NewWinCondition() (winCondition WinCondition) {
-// 	winCondition = WinCondition{object{25, 25, Coord{0, 0}}, 100}
-// 	return winCondition
-// }
-
-// func NewLossCondition() (lossCondition LossCondition) {
-// 	lossCondition = LossCondition{object{25, 25, Coord{0, 0}}, -100}
-// 	return lossCondition
-// }
