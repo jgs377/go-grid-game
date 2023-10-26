@@ -60,11 +60,13 @@ type Reward struct {
 type LossCondition struct {
 	object
 	value int
+	loss bool
 }
 
 type WinCondition struct {
 	object
 	value int
+	win bool
 }
 
 // All object types present in the game implement this ObjectInterface
@@ -130,6 +132,11 @@ func (p *Player) Move(direction int, grid *Grid) {
 
 	if grid.IsReward(Coord{newX, newY}) {
 		p.score += float64(grid.tiles[newX][newY].(Reward).value)
+	}
+
+	if grid.IsWinCondition(Coord{newX, newY}) {
+		p.score += float64(grid.tiles[newX][newY].(WinCondition).value)
+		grid.gameOver = true
 	}
 
 	grid.tiles[newX][newY] = grid.tiles[p.location.tileX][p.location.tileY]
@@ -203,6 +210,21 @@ func NewReward(coord Coord) (reward Reward) {
 	return reward
 }
 
+func NewWinCondition(coord Coord) (winCondition WinCondition) {
+	sprite := newSpriteFromPath(winConditionPath)
+	winCondition = WinCondition{
+		object: object{
+			windowX: float64(25+50*coord.tileX),
+			windowY: float64(25+50*coord.tileY),
+			location: coord,
+			sprite: sprite,
+		},
+		value: 20,
+		win: true,
+	}
+	return winCondition
+}
+
 func loadPicture(path string) (pixel.Picture, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -224,10 +246,6 @@ func newSpriteFromPath(path string) (sprite *pixel.Sprite) {
 	return pixel.NewSprite(pic, pic.Bounds())
 }
 
-// func NewWinCondition() (winCondition WinCondition) {
-// 	winCondition = WinCondition{object{25, 25, Coord{0, 0}}, 100}
-// 	return winCondition
-// }
 
 // func NewLossCondition() (lossCondition LossCondition) {
 // 	lossCondition = LossCondition{object{25, 25, Coord{0, 0}}, -100}

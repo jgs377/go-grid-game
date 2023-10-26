@@ -20,10 +20,13 @@ type Grid struct {
 	sizeX int
 	sizeY int
 	tiles [][]ObjectInterface
+	gameOver bool
 }
 
 // Generates a new grid
 func GenerateGrid(sizeX int, sizeY int, player *Player) (grid Grid) {
+	grid.gameOver = false
+
 	grid.sizeX = sizeX
 	grid.sizeY = sizeY
 
@@ -37,7 +40,9 @@ func GenerateGrid(sizeX int, sizeY int, player *Player) (grid Grid) {
 	grid.tiles[2][3] = NewObstacle(Coord{2, 3})
 	grid.tiles[7][5] = NewObstacle(Coord{7, 5})
 	grid.tiles[7][4] = NewObstacle(Coord{7, 4})
+	grid.tiles[8][1] = NewReward(Coord{8, 1})
 	grid.tiles[8][8] = NewReward(Coord{8, 8})
+	grid.tiles[9][9] = NewWinCondition(Coord{9, 9})
 
 	return grid
 }
