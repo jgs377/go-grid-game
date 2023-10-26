@@ -2,10 +2,12 @@ package main
 
 import "github.com/gopxl/pixel/v2/pixelgl"
 
-const North int = 0
-const South int = 1
-const East int = 2
-const West int = 3
+const (
+	North int = iota
+	South
+	East
+	West
+)
 
 // Represents a coordinate pointing to a tile on the Grid
 type Coord struct {
@@ -35,6 +37,7 @@ func GenerateGrid(sizeX int, sizeY int, player *Player) (grid Grid) {
 	grid.tiles[2][3] = NewObstacle(Coord{2, 3})
 	grid.tiles[7][5] = NewObstacle(Coord{7, 5})
 	grid.tiles[7][4] = NewObstacle(Coord{7, 4})
+	grid.tiles[8][8] = NewReward(Coord{8, 8})
 
 	return grid
 }
@@ -82,22 +85,18 @@ func (g Grid) IsValidTile(coord Coord) (isValidTile bool) {
 }
 
 func (c Coord) Shift(direction int) (shiftedCoord Coord) {
-	if direction == North {
+	switch direction {
+	case North:
 		return Coord{c.tileX, c.tileY + 1}
-	}
-	if direction == South {
+	case South:
 		return Coord{c.tileX, c.tileY - 1}
-	}
-	if direction == East {
+	case East:
 		return Coord{c.tileX - 1, c.tileY}
-	}
-	if direction == West {
+	case West:
 		return Coord{c.tileX + 1, c.tileY}
+	default:
+		return c
 	}
-
-	// In theory this shouldn't be reachable, so we just
-	// return the unchanged input Coord
-	return c
 }
 
 func (g *Grid) Draw(win *pixelgl.Window) {
