@@ -241,9 +241,3 @@ func newSpriteFromPath(path string) (sprite *pixel.Sprite) {
 	}
 	return pixel.NewSprite(pic, pic.Bounds())
 }
-
-
-// func NewLossCondition() (lossCondition LossCondition) {
-// 	lossCondition = LossCondition{object{25, 25, Coord{0, 0}}, -100}
-// 	return lossCondition
-// }
