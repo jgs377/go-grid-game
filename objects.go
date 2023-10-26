@@ -11,7 +11,16 @@ import (
 	"github.com/gopxl/pixel/v2/pixelgl"
 )
 
-const debug bool = false
+const (
+	debug = false
+	asset_path = "assets/"
+	playerPath = asset_path + "gopher50x50.png"
+	playerBackPath = asset_path + "gopher50x50back.png"
+	playerFrontPath = asset_path + "gopher50x50front.png"
+	rewardPath = asset_path + "carrot.png"
+	winConditionPath = asset_path + "dollar-bag2.png"
+	obstaclePath = asset_path + "rock.png"
+)
 
 type object struct {
 	// Generic object in the grid game
@@ -63,6 +72,11 @@ type ObjectInterface interface {
 	Draw(*pixelgl.Window)
 }
 
+func (o object) Draw(win *pixelgl.Window) {
+	mat := pixel.IM.Moved(pixel.V(o.windowX, o.windowY))
+	o.sprite.Draw(win, mat)
+}
+
 func (p Player) Draw(win *pixelgl.Window) {
 	// Check East first because it's the only one we need to scale
 	// the matrix for which has to be step 1
@@ -86,52 +100,47 @@ func (p Player) Draw(win *pixelgl.Window) {
 }
 
 func (o Obstacle) Draw(win *pixelgl.Window) {
-	mat := pixel.IM.Moved(pixel.V(o.windowX, o.windowY))
-	o.sprite.Draw(win, mat)
+	o.object.Draw(win)
 }
 
 func (r Reward) Draw(win *pixelgl.Window) {
-	// TODO
+	r.object.Draw(win)
 }
 
 func (w WinCondition) Draw(win *pixelgl.Window) {
-	// TODO
+	w.object.Draw(win)
 }
 
 func (l LossCondition) Draw(win *pixelgl.Window) {
-	// TODO
+	l.object.Draw(win)
+}
+
+var movement = map[int]Coord{
+	North: {0, 1},
+	South: {0, -1},
+	East: {-1, 0},
+	West: {1, 0},
 }
 
 // Moves the player in the grid
 func (p *Player) Move(direction int, grid *Grid) {
-	if direction == North {
-		grid.tiles[p.location.tileX][p.location.tileY+1] = grid.tiles[p.location.tileX][p.location.tileY]
-		grid.tiles[p.location.tileX][p.location.tileY] = nil
-		p.location.tileY += 1
-		p.windowY += 50
-		p.score -= 0.1
+	move := movement[direction]
+	newX := p.location.tileX + move.tileX
+	newY := p.location.tileY + move.tileY
+
+	if grid.IsReward(Coord{newX, newY}) {
+		p.score += float64(grid.tiles[newX][newY].(Reward).value)
 	}
-	if direction == South {
-		grid.tiles[p.location.tileX][p.location.tileY-1] = grid.tiles[p.location.tileX][p.location.tileY]
-		grid.tiles[p.location.tileX][p.location.tileY] = nil
-		p.location.tileY -= 1
-		p.windowY -= 50
-		p.score -= 0.1
-	}
-	if direction == East {
-		grid.tiles[p.location.tileX-1][p.location.tileY] = grid.tiles[p.location.tileX][p.location.tileY]
-		grid.tiles[p.location.tileX][p.location.tileY] = nil
-		p.location.tileX -= 1
-		p.windowX -= 50
-		p.score -= 0.1
-	}
-	if direction == West {
-		grid.tiles[p.location.tileX+1][p.location.tileY] = grid.tiles[p.location.tileX][p.location.tileY]
-		grid.tiles[p.location.tileX][p.location.tileY] = nil
-		p.location.tileX += 1
-		p.windowX += 50
-		p.score -= 0.1
-	}
+
+	grid.tiles[newX][newY] = grid.tiles[p.location.tileX][p.location.tileY]
+    grid.tiles[p.location.tileX][p.location.tileY] = nil
+
+	p.location.tileX = newX
+	p.location.tileY = newY
+	p.windowX += float64(50 * move.tileX)
+	p.windowY += float64(50 * move.tileY)
+	p.score -= 0.1
+
 	if debug {
 		for _, j := range grid.tiles {
 			fmt.Println(j)
@@ -142,30 +151,20 @@ func (p *Player) Move(direction int, grid *Grid) {
 
 // Generates an object of type Player
 func NewPlayer(coord Coord) (player Player) {
-	pic, err := loadPicture("assets/gopher50x50.png")
-	if err != nil {
-		panic(err)
-	}
-	pic2, err := loadPicture("assets/gopher50x50back.png")
-	if err != nil {
-		panic(err)
-	}
-	pic3, err := loadPicture("assets/gopher50x50front.png")
-	if err != nil {
-		panic(err)
-	}
-
+	sprite1 := newSpriteFromPath(playerPath)
+	sprite2 := newSpriteFromPath(playerBackPath)
+	sprite3 := newSpriteFromPath(playerFrontPath)
 	player = Player{
 		object: object{
 			windowX:  25,
 			windowY:  25,
 			location: coord,
-			sprite:   pixel.NewSprite(pic, pic.Bounds()),
+			sprite:   sprite1,
 		},
 		score:       0,
 		direction:   1.0,
-		backSprite:  pixel.NewSprite(pic2, pic2.Bounds()),
-		frontSprite: pixel.NewSprite(pic3, pic3.Bounds()),
+		backSprite:  sprite2,
+		frontSprite: sprite3,
 	}
 
 	return player
@@ -173,21 +172,35 @@ func NewPlayer(coord Coord) (player Player) {
 
 // Generates an object of type Obstacle
 func NewObstacle(coord Coord) (obstacle Obstacle) {
-	pic, err := loadPicture("assets/rock.png")
-	if err != nil {
-		panic(err)
-	}
+	sprite := newSpriteFromPath(obstaclePath)
 
 	obstacle = Obstacle{
 		object: object{
 			windowX:  float64(25 + 50*coord.tileX),
 			windowY:  float64(25 + 50*coord.tileY),
 			location: coord,
-			sprite:   pixel.NewSprite(pic, pic.Bounds()),
+			sprite:   sprite,
 		},
 	}
 
 	return obstacle
+}
+
+// Generates an object of type Reward
+func NewReward(coord Coord) (reward Reward) {
+	sprite := newSpriteFromPath(rewardPath)
+	
+	reward = Reward{
+		object: object{
+			windowX: float64(25+50*coord.tileX),
+			windowY: float64(25+50*coord.tileY),
+			location: coord,
+			sprite: sprite,
+		},
+		value: 5,
+	}
+
+	return reward
 }
 
 func loadPicture(path string) (pixel.Picture, error) {
@@ -201,6 +214,14 @@ func loadPicture(path string) (pixel.Picture, error) {
 		return nil, err
 	}
 	return pixel.PictureDataFromImage(img), nil
+}
+
+func newSpriteFromPath(path string) (sprite *pixel.Sprite) {
+	pic, err := loadPicture(path)
+	if err != nil {
+		panic(err)
+	}
+	return pixel.NewSprite(pic, pic.Bounds())
 }
 
 // func NewWinCondition() (winCondition WinCondition) {
