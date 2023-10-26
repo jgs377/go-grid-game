@@ -12,7 +12,7 @@ go run main.go
 # Thanks
 - https://github.com/egonelbre/gophers for the gopher artwork that I edited to make the character.
 - https://github.com/gopxl/pixel cool project for the GUI.
-- https://www.svgrepo.com for the carrot, rock and bag artwork.
+- https://www.svgrepo.com for the carrot, hole, rock and bag artwork.
 
 # Screenshots
 <img src="https://github.com/jgs377/go-grid-game/blob/main/assets/Screenshot2.png?raw=true" width="500" />
