@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/gopxl/pixel/v2"
@@ -164,9 +165,8 @@ func run() {
 
 func run_Q() {
 	// Create window config
-	// TODO: Customizable bounds using cmd args
 	config := pixelgl.WindowConfig{
-		Title:  "Grid Game",
+		Title:  "Grid Game - Q-Learning Agent",
 		Bounds: pixel.R(0, 0, 500, 530),
 		VSync:  true,
 	}
@@ -182,17 +182,43 @@ func run_Q() {
 	gopher := NewPlayer(Coord{0, 0})
 	grid := GenerateGrid(10, 10, &gopher)
 
-	ttf, err := truetype.Parse(goregular.TTF)
-	if err != nil {
-		panic(err)
-	}
-
+	ttf, _ := truetype.Parse(goregular.TTF)
 	face := truetype.NewFace(ttf, &truetype.Options{Size: 22})
 	atlas := text.NewAtlas(face, text.ASCII)
 	txt := text.New(pixel.V(5, 505), atlas)
 	txt.Color = colornames.Yellow
 
+	agent := NewQLearningAgent(4, 0.1, 0.95, 0.5, 0.99)
+
+	win.Clear(colornames.White)
+	imd.Draw(win)
+	txt.WriteString(fmt.Sprintf("Score: %.1f", gopher.score))
+	txt.Draw(win, pixel.IM)
+	txt.Clear()
+	grid.Draw(win)
+
+	iteration := 0
+
 	for !win.Closed() && !win.JustPressed(pixelgl.KeyEscape) {
+		fmt.Printf("Iteration %d\n", iteration)
+		// iteration++
+
+		currentGameState := GameState{
+			grid: &grid,
+			Coord: Coord{
+				tileX: gopher.location.tileX,
+				tileY: gopher.location.tileY,
+			},
+		}
+
+		direction := agent.act(currentGameState)
+		oldScore := gopher.score
+		gopher.Move(direction, &grid)
+		gopher.direction = direction
+
+		agent.update(currentGameState, direction, GameState{grid: &grid, Coord: gopher.location}, gopher.score - oldScore)
+
+
 		// Make background white
 		win.Clear(colornames.White)
 
@@ -207,35 +233,24 @@ func run_Q() {
 		// Draw the sprites contained in grid.tiles
 		grid.Draw(win)
 
-		// Handle key inputs
-		if win.JustPressed(pixelgl.KeyLeft) {
-			if grid.IsValidTile(gopher.location.Shift(East)) {
-				gopher.Move(East, &grid)
-			}
-			gopher.direction = East
+		if iteration > 500 {
+			agent.ExplorationRate = 0.0
+			time.Sleep(100 * time.Millisecond)
+			win.Update()
 		}
-		if win.JustPressed(pixelgl.KeyRight) {
-			if grid.IsValidTile(gopher.location.Shift(West)) {
-				gopher.Move(West, &grid)
-			}
-			gopher.direction = West
+
+		if grid.gameOver {
+			grid.ResetGrid(&gopher)
+			gopher.windowX = 25
+			gopher.windowY = 25
+			gopher.location = Coord{0, 0}
+			gopher.score = 0
+			iteration++
 		}
-		if win.JustPressed(pixelgl.KeyUp) {
-			if grid.IsValidTile(gopher.location.Shift(North)) {
-				gopher.Move(North, &grid)
-			}
-			gopher.direction = North
-		}
-		if win.JustPressed(pixelgl.KeyDown) {
-			if grid.IsValidTile(gopher.location.Shift(South)) {
-				gopher.Move(South, &grid)
-			}
-			gopher.direction = South
-		}
-		win.Update()
 	}
 }
 
 func main() {
-	pixelgl.Run(run)
+	pixelgl.Run(run_Q)
+	// pixelgl.Run(run)
 }

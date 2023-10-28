@@ -5,6 +5,9 @@ The initial aim of Grid Game is to learn to use the programming language Go. Bey
 TODO: Make a nice splash image
 
 # Usage
+
+In main.go's main function, select whether you want to play yourself (run) or if you want the RL agent to play (run_Q)
+
 ```
 go run main.go
 ```
