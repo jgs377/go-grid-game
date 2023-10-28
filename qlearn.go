@@ -89,7 +89,6 @@ func (agent *QLearningAgent) update(observation GameState, action int, newObserv
 		}
 	}
 	currentValue := agent.QTable[observationAction]
-	// a.QTable[observationAction] = temp + a.LearningRate * (reward + a.Discount * optimalFutureValue - temp)
 	agent.QTable[observationAction] = (1.0 - agent.LearningRate) * currentValue + agent.LearningRate * (reward + agent.Discount * optimalFutureValue)
 
 }
