@@ -136,7 +136,7 @@ func (p *Player) Move(direction int, grid *Grid) {
 	p.location.tileY = newY
 	p.windowX += float64(50 * move.tileX)
 	p.windowY += float64(50 * move.tileY)
-	p.score -= 0.1
+	// p.score -= 0.1
 
 	if debug {
 		for _, j := range grid.tiles {

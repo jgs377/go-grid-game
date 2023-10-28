@@ -48,6 +48,24 @@ func GenerateGrid(sizeX int, sizeY int, player *Player) (grid Grid) {
 	return grid
 }
 
+func (grid *Grid) ResetGrid(player *Player) {
+	grid.gameOver = false
+
+	grid.tiles = make([][]ObjectInterface, grid.sizeX)
+	for i := range grid.tiles {
+		grid.tiles[i] = make([]ObjectInterface, grid.sizeY)
+	}
+
+	grid.tiles[0][0] = player
+	grid.tiles[2][3] = NewObstacle(Coord{2, 3})
+	grid.tiles[7][5] = NewObstacle(Coord{7, 5})
+	grid.tiles[7][4] = NewObstacle(Coord{7, 4})
+	grid.tiles[8][1] = NewReward(Coord{8, 1})
+	grid.tiles[8][8] = NewReward(Coord{8, 8})
+	grid.tiles[9][9] = NewEndCondition(Coord{9, 9}, 20)
+	grid.tiles[4][2] = NewEndCondition(Coord{4, 2}, -20)
+}
+
 // Determines if there is an object of type Reward on the tile at location (coord.X, coord.Y)
 func (g Grid) IsReward(coord Coord) (isReward bool) {
 	toTest := g.tiles[coord.tileX][coord.tileY]

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/gopxl/pixel/v2"
@@ -162,6 +163,94 @@ func run() {
 	}
 }
 
+func run_Q() {
+	// Create window config
+	config := pixelgl.WindowConfig{
+		Title:  "Grid Game - Q-Learning Agent",
+		Bounds: pixel.R(0, 0, 500, 530),
+		VSync:  true,
+	}
+
+	win, err := pixelgl.NewWindow(config)
+	if err != nil {
+		panic(err)
+	}
+
+	imd := imdraw.New(nil)
+	calculateGridSquares(imd)
+
+	gopher := NewPlayer(Coord{0, 0})
+	grid := GenerateGrid(10, 10, &gopher)
+
+	ttf, _ := truetype.Parse(goregular.TTF)
+	face := truetype.NewFace(ttf, &truetype.Options{Size: 22})
+	atlas := text.NewAtlas(face, text.ASCII)
+	txt := text.New(pixel.V(5, 505), atlas)
+	txt.Color = colornames.Yellow
+
+	agent := NewQLearningAgent(4, 0.1, 0.95, 0.5, 0.99)
+
+	win.Clear(colornames.White)
+	imd.Draw(win)
+	txt.WriteString(fmt.Sprintf("Score: %.1f", gopher.score))
+	txt.Draw(win, pixel.IM)
+	txt.Clear()
+	grid.Draw(win)
+
+	iteration := 0
+
+	for !win.Closed() && !win.JustPressed(pixelgl.KeyEscape) {
+		fmt.Printf("Iteration %d\n", iteration)
+		// iteration++
+
+		currentGameState := GameState{
+			grid: &grid,
+			Coord: Coord{
+				tileX: gopher.location.tileX,
+				tileY: gopher.location.tileY,
+			},
+		}
+
+		direction := agent.act(currentGameState)
+		oldScore := gopher.score
+		gopher.Move(direction, &grid)
+		gopher.direction = direction
+
+		agent.update(currentGameState, direction, GameState{grid: &grid, Coord: gopher.location}, gopher.score - oldScore)
+
+
+		// Make background white
+		win.Clear(colornames.White)
+
+		// Draw the grey squares
+		imd.Draw(win)
+
+		// Write the score text to the top of the window
+		txt.WriteString(fmt.Sprintf("Score: %.1f", gopher.score))
+		txt.Draw(win, pixel.IM)
+		txt.Clear()
+
+		// Draw the sprites contained in grid.tiles
+		grid.Draw(win)
+
+		if iteration > 500 {
+			agent.ExplorationRate = 0.0
+			time.Sleep(100 * time.Millisecond)
+			win.Update()
+		}
+
+		if grid.gameOver {
+			grid.ResetGrid(&gopher)
+			gopher.windowX = 25
+			gopher.windowY = 25
+			gopher.location = Coord{0, 0}
+			gopher.score = 0
+			iteration++
+		}
+	}
+}
+
 func main() {
-	pixelgl.Run(run)
+	pixelgl.Run(run_Q)
+	// pixelgl.Run(run)
 }
